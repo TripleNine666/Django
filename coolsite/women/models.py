@@ -4,6 +4,7 @@ from django.urls import reverse
 
 class Women(models.Model):
     title = models.CharField(max_length=255, verbose_name="Заголовок")
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
     content = models.TextField(blank=True, verbose_name="Текст стаитьи")
     photo = models.ImageField(upload_to="photos/%Y/%m/%d/", verbose_name="Фотография")
     time_create = models.DateTimeField(auto_now_add=True, verbose_name="Время создания")
@@ -12,7 +13,7 @@ class Women(models.Model):
     cat = models.ForeignKey('Category', on_delete=models.PROTECT, null=True, verbose_name="Категория")
 
     def get_absolute_url(self):
-        return reverse('post', kwargs={'post_id': self.pk})
+        return reverse('post', kwargs={'post_slug': self.slug})
 
     def __str__(self):
         return self.title
@@ -20,14 +21,15 @@ class Women(models.Model):
     class Meta:
         verbose_name = "Известныx женщин"
         verbose_name_plural = "Известные женщины"
-        ordering = ["time_create", "title"]
+        ordering = ["-time_create", "title"]
 
 
 class Category(models.Model):
     name = models.CharField(max_length=100, db_index=True, verbose_name="Категория")
+    slug = models.SlugField(max_length=255, unique=True, db_index=True, verbose_name="URL")
 
     def get_absolute_url(self):
-        return reverse('category', kwargs={'cat_id': self.pk})
+        return reverse('category', kwargs={'cat_slug': self.slug})
 
     def __str__(self):
         return self.name
