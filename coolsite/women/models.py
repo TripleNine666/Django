@@ -18,7 +18,7 @@ class Women(models.Model):
         return self.title
 
     class Meta:
-        verbose_name = "Известные женщины"
+        verbose_name = "Известныx женщин"
         verbose_name_plural = "Известные женщины"
         ordering = ["time_create", "title"]
 
