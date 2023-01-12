@@ -22,8 +22,8 @@ from women.views import *
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('women.urls')), # http://127.0.0.1:8000/women/
+    path('admin/', admin.site.urls, name=admin),
+    path('', include('women.urls')), # http://127.0.0.1:8000/
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
