@@ -2,6 +2,7 @@ from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django.views.generic import ListView, DetailView, CreateView
+from django.views.generic import TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 
 from .forms import *
@@ -23,12 +24,13 @@ class WomenHome(DataMixin, ListView):
         return Women.objects.filter(is_published=True)
 
 
-def about(request):
-    context = {
-        'menu': menu,
-        'title': 'О сайте'
-    }
-    return render(request, 'women/about.html', context=context)
+class About(DataMixin, TemplateView):
+    template_name = 'women/about.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        c_def = self.get_user_context(title='О сайте')
+        return context | c_def
 
 
 class AddPage(LoginRequiredMixin, DataMixin, CreateView):
