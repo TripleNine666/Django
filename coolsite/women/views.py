@@ -23,7 +23,7 @@ class WomenHome(DataMixin, ListView):
         return context | c_def
 
     def get_queryset(self):
-        return Women.objects.filter(is_published=True)
+        return Women.objects.filter(is_published=True).select_related('cat')
 
 
 class About(DataMixin, TemplateView):
@@ -74,13 +74,12 @@ class WomenCategory(DataMixin, ListView):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        title = 'Категория - ' + str(context['posts'][0].cat)
-        cat_selected = context['posts'][0].cat_id
-        c_def = self.get_user_context(title=title, cat_selected=cat_selected)
+        c = Category.objects.get(slug=self.kwargs['cat_slug'])
+        c_def = self.get_user_context(title='Категория - ' + c.name, cat_selected=c.pk)
         return dict(list(context.items()) + list(c_def.items()))
 
     def get_queryset(self):
-        return Women.objects.filter(cat__slug=self.kwargs['cat_slug'], is_published=True)
+        return Women.objects.filter(cat__slug=self.kwargs['cat_slug'], is_published=True).select_related('cat')
 
 
 def pageNotFound(request, exception):
