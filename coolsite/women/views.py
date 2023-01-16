@@ -1,4 +1,5 @@
 from django.contrib.auth import logout, login
+from django.core.cache import cache
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponse, HttpResponseNotFound, Http404
 from django.shortcuts import render, redirect, get_object_or_404
@@ -23,7 +24,12 @@ class WomenHome(DataMixin, ListView):
         return context | c_def
 
     def get_queryset(self):
-        return Women.objects.filter(is_published=True).select_related('cat')
+        query = cache.get_or_set('women', Women.objects.filter(is_published=True).select_related('cat'), 60*3)
+        # if not query:
+        #     query = Women.objects.filter(is_published=True).select_related('cat')
+        #     cache.set('women', query, 60*5)
+        return query
+        # return Women.objects.filter(is_published=True).select_related('cat')
 
 
 class About(DataMixin, TemplateView):
@@ -73,13 +79,26 @@ class WomenCategory(DataMixin, ListView):
     allow_empty = False
 
     def get_context_data(self, *, object_list=None, **kwargs):
+        slug = self.kwargs['cat_slug']
         context = super().get_context_data(**kwargs)
-        c = Category.objects.get(slug=self.kwargs['cat_slug'])
+
+        # c = Category.objects.get(slug=self.kwargs['cat_slug'])
+        c = cache.get(f'cat_{slug}')
+        if not c:
+            c = Category.objects.get(slug=slug)
+            cache.set(f'cat_{slug}', c, 60)
+
         c_def = self.get_user_context(title='Категория - ' + c.name, cat_selected=c.pk)
-        return dict(list(context.items()) + list(c_def.items()))
+        return context | c_def
 
     def get_queryset(self):
-        return Women.objects.filter(cat__slug=self.kwargs['cat_slug'], is_published=True).select_related('cat')
+        query = cache.get_or_set('cat', Women.objects.filter(cat__slug=self.kwargs['cat_slug'], is_published=True).select_related('cat'), 60 * 3)
+        # query = cache.get('cat')
+        # if not query:
+        #     query = Women.objects.filter(is_published=True).select_related('cat')
+        #     cache.set('cat', query, 60 * 5)
+        return query
+        # return Women.objects.filter(cat__slug=self.kwargs['cat_slug'], is_published=True).select_related('cat')
 
 
 def pageNotFound(request, exception):

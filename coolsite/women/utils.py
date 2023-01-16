@@ -1,5 +1,5 @@
 from django.db.models import Count
-
+from django.core.cache import cache
 from .models import *
 
 menu = [{'title': "О сайте", 'url_name': 'about'},
@@ -13,8 +13,11 @@ class DataMixin:
 
     def get_user_context(self, **kwargs):
         context = kwargs
-
-        cats = Category.objects.annotate(Count('women'))
+        cats = cache.get_or_set('cats', Category.objects.annotate(Count('women')), 60*3)
+        # cats = cache.get('cats')
+        # if not cats:
+        #     cats = Category.objects.annotate(Count('women'))
+        #     cache.set('cats', cats, 15)
         # cats_with_posts = []
         # for c in cats:
         #     if c.women__count > 0:
